@@ -1,0 +1,1 @@
+"""DAO for Postgres/pgvector access (placeholder)."""
