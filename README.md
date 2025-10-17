@@ -48,6 +48,11 @@ Rebecca-Platform — это координируемая мультиагент�
    task-cli test --suite smoke
    ```
 
+## CI/CD
+- Все pull-request и коммиты автоматически тестируются (GitHub Actions: .github/workflows/tests.yml).
+- Проверяются smoke-тесты для каждого агента и интеграционный тест.
+- При ошибке сборка блокируется, требуется исправление.
+
 ---
 
 **Вопросы/исправления — см. документацию AGENTS.md или обращайся к Meta-Orchestrator.**

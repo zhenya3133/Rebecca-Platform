@@ -1,0 +1,25 @@
+name: Python agent tests
+
+on: [push, pull_request]
+
+jobs:
+  test-agents:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r src/requirements.txt || true
+      - name: Run smoke tests
+        run: |
+          cd src
+          for d in architect codegen educator feedback idea_generator integration logger memory_manager orchestrator qa researcher scheduler security ui_ux; do
+            cd $d
+            python test_main.py
+            cd ..
+          done
+      - name: Run integration test
+        run: python tests/integration_test.py
