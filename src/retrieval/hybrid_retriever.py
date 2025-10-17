@@ -35,11 +35,16 @@ class HybridRetriever:
             node = self.dao.fetch_node(idx)
             if not node:
                 continue
+            payload = node.model_dump() if hasattr(node, "model_dump") else (
+                node.dict() if hasattr(node, "dict") else node
+            )
+            if not isinstance(payload, dict):
+                payload = {"text": str(payload)}
             candidate = {
                 "id": idx,
-                "text": node.get("text", str(node)),
+                "text": payload.get("text") or payload.get("attrs", {}).get("text", str(node)),
                 "score": score,
-                **node,
+                **payload,
             }
             candidates.append(candidate)
 
