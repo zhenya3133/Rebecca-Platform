@@ -67,6 +67,22 @@ Rebecca-Platform — это координируемая мультиагент�
   curl -X POST "http://localhost:8000/run" -H "accept: application/json" -H "Content-Type: application/json" -d "\"test input\""
   ```
 
+## Запуск API с авторизацией и trace_id
+
+1. Старт сервера:
+   ```
+   uvicorn api:app --reload
+   ```
+2. Запрос:
+   ```
+   curl -X POST "http://localhost:8000/run" \
+     -H "accept: application/json" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer supersecrettoken" \
+     -d "{\"input_data\": \"Ваш input\", \"trace_id\": \"unique-id-123\"}"
+   ```
+3. В логах (`agent_log.txt`) записывается `trace_id` и результаты для каждого запроса.
+
 ---
 
 **Вопросы/исправления — см. документацию AGENTS.md или обращайся к Meta-Orchestrator.**
