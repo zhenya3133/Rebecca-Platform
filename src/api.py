@@ -3,7 +3,7 @@ import uuid
 from fastapi import FastAPI, Header, HTTPException, Request
 
 from orchestrator.main_workflow import main_workflow
-from logger import log_event
+from platform_logger import log_event
 
 
 app = FastAPI()

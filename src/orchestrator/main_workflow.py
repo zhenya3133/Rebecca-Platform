@@ -5,7 +5,7 @@ from educator.main import run_agent as run_educator
 from feedback.main import run_agent as run_feedback
 from idea_generator.main import run_agent as run_idea_generator
 from integration.main import run_agent as run_integration
-from logger.main import run_agent as run_logger
+from platform_logger.platform_logger_main import run_agent as run_platform_logger
 from memory_manager import memory_manager
 from memory_manager.main import run_agent as run_memory_manager
 from qa.main import run_agent as run_qa
@@ -25,7 +25,7 @@ def main_workflow(task_data):
     result = run_feedback(result["context"], result["result"])
     result = run_idea_generator(result["context"], result["result"])
     result = run_integration(result["context"], result["result"])
-    result = run_logger(result["context"], result["result"])
+    result = run_platform_logger(result["context"], result["result"])
     result = run_memory_manager(result["context"], result["result"])
     result = run_qa(result["context"], result["result"])
     result = run_researcher(result["context"], result["result"])
