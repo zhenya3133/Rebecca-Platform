@@ -53,6 +53,20 @@ Rebecca-Platform — это координируемая мультиагент�
 - Проверяются smoke-тесты для каждого агента и интеграционный тест.
 - При ошибке сборка блокируется, требуется исправление.
 
+## Внешний API
+
+- Стартап:
+  ```
+  pip install -r src/requirements.txt
+  cd src
+  uvicorn api:app --reload
+  ```
+- Доступно в браузере: http://localhost:8000/docs (Swagger UI)
+- Пример вызова через curl:
+  ```
+  curl -X POST "http://localhost:8000/run" -H "accept: application/json" -H "Content-Type: application/json" -d "\"test input\""
+  ```
+
 ---
 
 **Вопросы/исправления — см. документацию AGENTS.md или обращайся к Meta-Orchestrator.**
