@@ -1,0 +1,63 @@
+# Rebecca-Platform runtime configuration
+
+storage:
+  primary:
+    type: postgres
+    host: localhost
+    port: 5432
+    user: postgres
+    password: password
+    database: rebecca_core
+
+  archive:
+    type: local_files
+    root_path: ./vault_storage/
+
+  vector:
+    type: qdrant
+    url: http://localhost:6333
+    api_key: null
+
+# Optional secondary storages can be added here, e.g. mongo, s3, etc.
+
+llm_adapters:
+  default:
+    type: ollama
+    base_url: http://localhost:11434
+    model: mistral
+  creative:
+    type: openai
+    api_url: https://api.openai.com/v1/chat/completions
+    api_key: "sk-obfuscated"
+    model: gpt-4
+  code:
+    type: openrouter
+    api_url: https://openrouter.ai/api/v1/chat
+    api_key: "or-key"
+    model: mistral-8x7b
+
+agents:
+  content_agent:
+    role: content
+    llm: creative
+  devops_agent:
+    role: devops
+    llm: code
+  legal_agent:
+    role: legal
+    llm: default
+
+ingest:
+  default_pipeline: auto
+  pipeline_map:
+    pdf: pdf_ocr
+    docx: docx_parse
+    mp3: audio_stt
+    zip: repo_scan
+    link: repo_loader
+    txt: text_parse
+
+misc:
+  telemetry_enabled: true
+  observability: full
+  audit: true
