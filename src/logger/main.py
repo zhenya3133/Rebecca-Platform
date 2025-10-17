@@ -1,5 +1,6 @@
 def run_agent(context, input_data):
-    memory = context.get("memory")
-    if memory:
-        memory.core.store_fact("start", "agent launched")
-    return {"result": "stub", "context": context}
+    episodic = context["memory"].episodic
+    security_mem = context["memory"].security
+    episodic.store_event("logger event")
+    security_mem.store_audit("logging audit")
+    return {"result": "logger complete", "context": context}

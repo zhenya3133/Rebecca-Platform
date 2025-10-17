@@ -31,22 +31,22 @@
 
 ### Agent Directory
 
-| Agent | Primary Role | Memory Usage | Key Commands | Testing Focus |
-| --- | --- | --- | --- | --- |
-| Meta-Orchestrator | Intake requests, assign workflows, enforce SLAs | Core, Semantic, Procedural, Security | `orchestrate-plan`, `dispatch-agent`, `audit-trace` | System-level integration tests, SLA monitors |
-| Architect | Design system blueprints, allocate components | Core, Semantic, Procedural | `draft-architecture`, `validate-dependencies` | Design lint checks, architecture conformance |
-| CodeGen | Implement code artifacts per specs | Semantic, Procedural, Episodic | `generate-module`, `refactor`, `apply-patch` | Unit tests, static analysis, formatting gate |
-| QA | Define test plans, execute suites, track regressions | Procedural, Episodic, Semantic | `plan-tests`, `execute-suite`, `report-qa` | CI regression suites, coverage thresholds |
-| Educator | Create user guides, internal learning artifacts | Semantic, Procedural | `synthesize-doc`, `training-brief` | Content lint, readability metrics |
-| Researcher | Gather external intel, evaluate tools | Episodic, Semantic | `perform-research`, `compare-models` | Source verification, citation validation |
-| Memory Manager | Curate memories across layers | Core, Semantic, Procedural, Vault | `persist-memory`, `purge-episodic`, `snapshot` | Memory integrity checks, retention policy audits |
-| Idea Generator | Produce solution alternatives, brainstorming | Episodic, Semantic | `explore-ideas`, `rank-concepts` | Diversity metrics, bias screening |
-| Security Agent | Threat modeling, policy enforcement | Core, Security, Vault | `scan-vulnerabilities`, `approve-access`, `incident-report` | Pen-tests, policy compliance suites |
-| UI/UX | Design interaction flows, assess usability | Episodic, Semantic | `prototype-ui`, `usability-review` | Accessibility testing, UX heuristics |
-| Integration | Manage service wiring, API contracts | Semantic, Procedural, Vault | `sync-service`, `contract-check`, `deploy-adapter` | Contract tests, end-to-end integration |
-| Feedback | Aggregate user feedback, sentiment analysis | Episodic, Semantic | `ingest-feedback`, `generate-insights` | Data quality checks, sentiment accuracy |
-| Scheduler | Orchestrate timelines, resource allocation | Core, Procedural, Episodic | `plan-schedule`, `rebalance`, `deadline-alert` | SLA adherence, load simulation |
-| Logger | Collect and persist structured telemetry | Core, Procedural, Security, Vault | `append-log`, `rotate`, `export-trace` | Log integrity, tamper detection |
+| Agent | Primary Role | Memory Layers Used | Rationale |
+| --- | --- | --- | --- |
+| Meta-Orchestrator | Intake requests, assign workflows, enforce SLAs | Core, Semantic, Procedural, Security | Maintains global state, governance rules, and audit trails. |
+| Architect | Design system blueprints, allocate components | Core, Semantic | Writes architectural facts and reference patterns. |
+| CodeGen | Implement code artifacts per specs | Procedural, Vault | Records deployment workflows and safeguards build secrets. |
+| QA | Define test plans, execute suites, track regressions | Episodic, Procedural | Stores test run events and reusable test playbooks. |
+| Educator | Create user guides, internal learning artifacts | Core, Semantic | Logs lessons learned and conceptual training assets. |
+| Researcher | Gather external intel, evaluate tools | Core, Semantic | Captures research findings and long-term knowledge. |
+| Memory Manager | Curate memories across layers | Core, Procedural | Audits memory access and documents internal memory flows. |
+| Idea Generator | Produce solution alternatives, brainstorming | Semantic, Episodic | Preserves creative concepts and ideation history. |
+| Security Agent | Threat modeling, policy enforcement | Security, Vault | Records security audits and manages sensitive secrets. |
+| UI/UX | Design interaction flows, assess usability | Semantic, Episodic | Maps UI concepts and chronicles user interactions. |
+| Integration | Manage service wiring, API contracts | Vault, Procedural | Manages integration credentials and sync playbooks. |
+| Feedback | Aggregate user feedback, sentiment analysis | Episodic, Semantic | Tracks feedback sessions and contextual insights. |
+| Scheduler | Orchestrate timelines, resource allocation | Procedural, Episodic | Plans schedules and records execution cycles. |
+| Logger | Collect and persist structured telemetry | Episodic, Security | Stores logging sessions and corresponding audits. |
 
 ### Communication Workflow
 1. Meta-Orchestrator validates request signatures and instantiates a workflow trace.

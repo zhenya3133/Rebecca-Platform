@@ -1,5 +1,6 @@
 def run_agent(context, input_data):
-    memory = context.get("memory")
-    if memory:
-        memory.core.store_fact("start", "agent launched")
-    return {"result": "stub", "context": context}
+    episodic = context["memory"].episodic
+    semantic = context["memory"].semantic
+    episodic.store_event("user feedback")
+    semantic.store_concept("feedback", input_data)
+    return {"result": "feedback saved", "context": context}

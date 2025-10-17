@@ -1,5 +1,6 @@
 def run_agent(context, input_data):
-    memory = context.get("memory")
-    if memory:
-        memory.core.store_fact("start", "agent launched")
-    return {"result": "stub", "context": context}
+    vault = context["memory"].vault
+    procedural = context["memory"].procedural
+    vault.store_secret("integration_token", "example_token")
+    procedural.store_workflow("sync", ["connect API", "transfer data"])
+    return {"result": "integration complete", "context": context}

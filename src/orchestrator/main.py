@@ -1,5 +1,6 @@
 def run_agent(context, input_data):
-    memory = context.get("memory")
-    if memory:
-        memory.core.store_fact("start", "agent launched")
-    return {"result": "stub", "context": context}
+    episodic = context["memory"].episodic
+    core = context["memory"].core
+    episodic.store_event("workflow run")
+    core.store_fact("orchestrator", True)
+    return {"result": "orchestrator complete", "context": context}

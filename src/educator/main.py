@@ -1,5 +1,6 @@
 def run_agent(context, input_data):
-    memory = context.get("memory")
-    if memory:
-        memory.core.store_fact("start", "agent launched")
-    return {"result": "stub", "context": context}
+    core = context["memory"].core
+    semantic = context["memory"].semantic
+    core.store_fact("lesson", input_data)
+    semantic.store_concept("education topic", "machine learning")
+    return {"result": "educator complete", "context": context}

@@ -1,5 +1,6 @@
 def run_agent(context, input_data):
-    memory = context.get("memory")
-    if memory:
-        memory.core.store_fact("start", "agent launched")
-    return {"result": "stub", "context": context}
+    episodic = context["memory"].episodic
+    procedural = context["memory"].procedural
+    episodic.store_event("qa check triggered")
+    procedural.store_workflow("test_case", ["open app", "validate output"])
+    return {"result": "qa review", "context": context}

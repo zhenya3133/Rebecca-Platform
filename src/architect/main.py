@@ -1,5 +1,6 @@
 def run_agent(context, input_data):
-    memory = context.get("memory")
-    if memory:
-        memory.core.store_fact("start", "agent launched")
-    return {"result": "stub", "context": context}
+    core = context["memory"].core
+    semantic = context["memory"].semantic
+    core.store_fact("architecture", "initialized")
+    semantic.store_concept("solution pattern", "microservices")
+    return {"result": "architect complete", "context": context}

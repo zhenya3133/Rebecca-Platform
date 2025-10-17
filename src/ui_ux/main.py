@@ -1,5 +1,6 @@
 def run_agent(context, input_data):
-    memory = context.get("memory")
-    if memory:
-        memory.core.store_fact("start", "agent launched")
-    return {"result": "stub", "context": context}
+    semantic = context["memory"].semantic
+    episodic = context["memory"].episodic
+    semantic.store_concept("ui element", "button")
+    episodic.store_event("ui interaction")
+    return {"result": "ui_ux updated", "context": context}

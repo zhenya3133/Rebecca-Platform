@@ -1,10 +1,6 @@
-from .memory_manager import MemoryManager
-
-
 def run_agent(context, input_data):
-    memory = context.get("memory")
-    if memory is None:
-        memory = MemoryManager()
-        context["memory"] = memory
-    memory.core.store_fact("start", "agent launched")
-    return {"result": "stub", "context": context}
+    core = context["memory"].core
+    procedural = context["memory"].procedural
+    core.store_fact("memory access", True)
+    procedural.store_workflow("memory_manager", ["init", "manage", "terminate"])
+    return {"result": "memory_manager active", "context": context}
