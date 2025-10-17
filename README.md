@@ -19,8 +19,9 @@ Rebecca-Platform — это координируемая мультиагент�
 - **Vault:** секреты и токены, хранилище для приватных данных.
 - **Security:** аудиты, отчёты, логи инцидентов (только для Security Agent и Meta-Orchestrator).
 
-## Как запускать тесты агентов
+## Как запускать тесты
 
+### Локальные smoke-тесты агентов
 1. Перейти в папку агента:
    ```
    cd src/<agent>
@@ -30,6 +31,12 @@ Rebecca-Platform — это координируемая мультиагент�
    python test_main.py
    ```
 3. Проверить вывод: ОК означает, что агент корректно взаимодействует с памятью и логирует свои действия.
+
+### Интеграционные проверки retrieval/ingest
+```
+python -m pytest tests/retrieval/test_new_cases.py
+```
+Тест `test_edge_cases` валидирует гибридный ретривер на шумных запросах, а `test_pdf_ingest` убеждается, что пайплайн PDF фиксирует артефакты в семантической памяти.
 
 ## Начало работы
 
@@ -54,8 +61,8 @@ Rebecca-Platform — это координируемая мультиагент�
 - При ошибке сборка блокируется, требуется исправление.
 
 ### Observability & Regression Metrics
-- Для retrieval-модулей собираются метрики `coverage@k`, `contradiction-rate`, `token-efficiency`.
-- Цель качества на golden set — менее 1% ошибок по каждой из этих метрик.
+- Для retrieval-модулей собираются метрики `coverage@k`, `contradiction-rate`, `token-efficiency`, `drift_score`, `privacy_violation_rate`.
+- Цель качества на golden set — менее 1% ошибок по каждой из этих метрик; `drift_score` должен быть < 0.1, нарушений политики — 0.
 - Nightly задача `tests/nightly_eval.py` запускает регрессионный контроль и выводит значения метрик.
 
 ## Внешний API

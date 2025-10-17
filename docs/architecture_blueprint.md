@@ -1,4 +1,4 @@
-# Rebecca-Platform Memory & Architecture Blueprint (v1)
+# Rebecca-Platform Architecture Blueprint (v2)
 
 ## Overview
 
@@ -37,8 +37,9 @@ procedures). Promotion and decay rules (`rules/`) evolve data across layers.
   policy-compliant context packs with rationale and cache-friendly budgets.
 - **Adaptive Memory (`src/adaptive_mem/`)** — Forgetting agent orchestrates
   decay and self-evolving strategies via LLM judgement.
-- **Observability (`src/observability/`)** — Append-only audit log and
-  (placeholder) metrics to monitor drift, coverage, and contradictions.
+- **Observability (`src/observability/`)** — Append-only audit log и набор
+  метрик (`metrics.py`) для отслеживания coverage, contradictions,
+  token-efficiency, drift и privacy violations.
 - **Consolidation, Event Graph, Semantic Network, Ingest** — Supporting
   modules for graph normalization, ontology management, and modality-specific
   ingest pipelines.
@@ -51,15 +52,16 @@ procedures). Promotion and decay rules (`rules/`) evolve data across layers.
    relationships; links evidence references.
 3. **Consolidation** applies semantic or preference-based strategies, invokes
    promotion rules, and records decisions via the audit log.
-4. **Retrieval** uses the hybrid retriever to surface relevant nodes, applies
-   policy checks, redacts sensitive fields, and produces a `ContextPack` with
-   rationales and trace IDs.
+4. **Retrieval** использует гибридный retriever (BM25 + vector + graph
+   fusion) для нахождения релевантных узлов, применяет policy-проверки,
+   дополняет LLM-оценкой и формирует `ContextPack` с rationales и trace IDs.
 5. **Reconstruction** consumes context packs for LLM planners or downstream
    agents.
 6. **Adaptive Memory** periodically runs decay and self-evolving strategies to
    distill lessons from failures into semantic memory.
-7. **Observability** tracks coverage, drift, contradictions, and ensures
-   privacy alerts remain at zero.
+7. **Observability** агрегирует coverage, drift, contradictions,
+   token-efficiency и privacy violation rate; nightly отчёт фиксирует
+   отклонения.
 
 ## Directory Schematic
 
