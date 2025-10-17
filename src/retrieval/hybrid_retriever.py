@@ -1,7 +1,8 @@
 from collections import defaultdict
-from typing import Dict, Iterable, Tuple
+from typing import Dict, Iterable, List, Tuple
 
 from .scorers import fusion_score
+from .llm_evaluator import llm_judge_relevancy
 
 
 class HybridRetriever:
@@ -17,21 +18,38 @@ class HybridRetriever:
             scores[idx] = max(scores[idx], score)
         return scores
 
-    def retrieve(self, query: str, k: int = 40):
+    def retrieve(self, query: str, k: int = 40, use_llm_eval: bool = True):
         bm = self._as_dict(self.bm25.search(query, k * 2))
         ve = self._as_dict(self.vec.search(query, k * 2))
         gr = self._as_dict(self.graph.search_related(query, k * 2))
 
         all_ids = set(bm) | set(ve) | set(gr)
-        fused = []
+        fused: List[Tuple[str, float]] = []
         for idx in all_ids:
             score = fusion_score(bm.get(idx, 0.0), ve.get(idx, 0.0), gr.get(idx, 0.0))
             fused.append((idx, score))
 
         fused.sort(key=lambda x: x[1], reverse=True)
-        results = []
-        for idx, _ in fused[:k]:
+        candidates = []
+        for idx, score in fused:
             node = self.dao.fetch_node(idx)
-            if node:
-                results.append(node)
-        return results
+            if not node:
+                continue
+            candidate = {
+                "id": idx,
+                "text": node.get("text", str(node)),
+                "score": score,
+                **node,
+            }
+            candidates.append(candidate)
+
+        if use_llm_eval:
+            for candidate in candidates:
+                llm_score = llm_judge_relevancy(query, candidate.get("text", ""))
+                candidate["llm_score"] = llm_score
+                candidate["final_score"] = 0.5 * candidate["score"] + 0.5 * llm_score
+            candidates.sort(key=lambda c: c.get("final_score", c["score"]), reverse=True)
+        else:
+            candidates.sort(key=lambda c: c["score"], reverse=True)
+
+        return candidates[:k]
