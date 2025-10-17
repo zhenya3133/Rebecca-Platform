@@ -1,42 +1,53 @@
-## Rebecca-Platform
+# Rebecca-Platform
 
-Rebecca-Platform is a coordinated multi-agent AI system designed to plan, implement, validate, and deploy software features with minimal human intervention. Agents collaborate through structured protocols managed by a Meta-Orchestrator to keep development cycles observable, auditable, and secure.
+Rebecca-Platform — это координируемая мультиагентная AI-система для проектирования, реализации, тестирования и деплоя фичей с минимальным ручным вмешательством.
 
-### Multi-Agent Architecture
-- **Meta-Orchestrator:** Routes tasks, enforces SLAs, tracks workflow traces.
-- **Specialized Agents:** Architect, CodeGen, QA, Educator, Researcher, Memory Manager, Idea Generator, Security, UI/UX, Integration, Feedback, Scheduler, Logger.
-- **Communication:** JSON envelopes with `trace_id`, `intent`, and `payload` flowing through authenticated channels.
+## Как устроен пайплайн
 
-### Memory System
-- **Core:** Charter, protocols, agent manifests.
-- **Episodic:** Recent interactions and session context.
-- **Semantic:** Knowledge base, standards, best practices.
-- **Procedural:** Playbooks and runbooks.
-- **Vault:** Secrets, credentials, compliance assets.
-- **Security:** Threat intel, incident logs.
+- Каждый агент взаимодействует через контролирующий Meta-Orchestrator.
+- Задачи декомпозируются и распределяются по агентам в папке `src/<agent>`.
+- Память (MemoryManager) реализует 6 слоёв: Core, Episodic, Semantic, Procedural, Vault, Security.
+- Данные между агентами передаются через структурированные JSON-конверты с метаданными (`role`, `intent`, `payload`, `trace_id`).
+- Логирование и обработка ошибок осуществляется через `logger.py` в каждом модуле.
 
-### Workflow Stages
-1. Intake via Meta-Orchestrator and task registration.
-2. Planning by Architect, Researcher, Idea Generator, and Memory Manager.
-3. Execution handled by CodeGen, Integration, UI/UX, Scheduler.
-4. Quality and compliance verification by QA, Security, Feedback, Educator.
-5. Merge & release via pull request with automated testing and logging.
+## Что такое слои памяти
 
-### Developer Setup
-1. Clone the repository:
-   ```bash
+- **Core:** системные правила, манифесты агентов.
+- **Episodic:** свежие события, временные записи (автоматически чистятся).
+- **Semantic:** long-term знания, стандарты, рекомендации.
+- **Procedural:** инструкции, чеклисты, runbook-и.
+- **Vault:** секреты и токены, хранилище для приватных данных.
+- **Security:** аудиты, отчёты, логи инцидентов (только для Security Agent и Meta-Orchestrator).
+
+## Как запускать тесты агентов
+
+1. Перейти в папку агента:
+   ```
+   cd src/<agent>
+   ```
+2. Запустить smoke-тест:
+   ```
+   python test_main.py
+   ```
+3. Проверить вывод: ОК означает, что агент корректно взаимодействует с памятью и логирует свои действия.
+
+## Начало работы
+
+1. Клонируй репозиторий:
+   ```
    git clone <repo-url>
    cd Rebecca-Platform
    ```
-2. Launch core services:
-   ```bash
+2. Запусти базовые сервисы (docker, если требуется):
+   ```
    docker compose -f docker/docker-compose.yml up -d
    ```
-3. Interact with agents using the Droid CLI:
-   ```bash
-   task-cli run --agent meta-orchestrator --intent status --trace <id>
+3. Проведи тестирование и взаимодействие с агентами через CLI:
    ```
-4. Run the initial test suite:
-   ```bash
+   task-cli run --agent <agent> --intent <intent> --trace <id>
    task-cli test --suite smoke
    ```
+
+---
+
+**Вопросы/исправления — см. документацию AGENTS.md или обращайся к Meta-Orchestrator.**
