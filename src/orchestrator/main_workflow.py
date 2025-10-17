@@ -6,6 +6,7 @@ from feedback.main import run_agent as run_feedback
 from idea_generator.main import run_agent as run_idea_generator
 from integration.main import run_agent as run_integration
 from logger.main import run_agent as run_logger
+from memory_manager import memory_manager
 from memory_manager.main import run_agent as run_memory_manager
 from qa.main import run_agent as run_qa
 from researcher.main import run_agent as run_researcher
@@ -15,6 +16,9 @@ from ui_ux.main import run_agent as run_ui_ux
 
 def main_workflow(task_data):
     context = {}
+    memory = memory_manager.MemoryManager()
+    context["memory"] = memory
+
     result = run_architect(context, task_data)
     result = run_codegen(result["context"], result["result"])
     result = run_educator(result["context"], result["result"])
