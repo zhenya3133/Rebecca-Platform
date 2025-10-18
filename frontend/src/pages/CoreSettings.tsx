@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { UploadDropzone } from "../components/UploadDropzone";
 import { RebeccaCoreService } from "../services/RebeccaCoreService";
 
 type StatusVariant = "idle" | "connected" | "failed" | "error";
@@ -17,6 +18,7 @@ export const CoreSettings: React.FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
 
   const labelForStatus: Record<StatusVariant, string> = {
     idle: "Awaiting test",
@@ -93,6 +95,16 @@ export const CoreSettings: React.FC = () => {
       setLoadError("Failed to save settings");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleFileUpload = async (files: FileList) => {
+    try {
+      await RebeccaCoreService.uploadDocuments(token, files);
+      setUploadStatus(`Uploaded ${files.length} file(s)`);
+    } catch (error) {
+      console.error(error);
+      setUploadStatus("Upload failed");
     }
   };
 
@@ -196,6 +208,11 @@ export const CoreSettings: React.FC = () => {
         </button>
         <span className={`status status-${status}`}>{labelForStatus[status]}</span>
       </div>
+      <section className="upload-area">
+        <h3>Document Upload</h3>
+        <UploadDropzone onFilesSelected={handleFileUpload} />
+        {uploadStatus && <p className="status-message">{uploadStatus}</p>}
+      </section>
     </section>
   );
 };

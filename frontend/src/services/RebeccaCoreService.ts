@@ -81,4 +81,21 @@ export class RebeccaCoreService {
     }
     return (await response.json()) as CoreSettingsPayload;
   }
+
+  static async uploadDocuments(token: string, files: FileList): Promise<void> {
+    const formData = new FormData();
+    Array.from(files).forEach((file) => {
+      formData.append("file", file);
+    });
+    const response = await fetch(`${DEFAULT_ENDPOINT}/documents/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+    if (!response.ok) {
+      throw new Error("Failed to upload documents");
+    }
+  }
 }
