@@ -4,6 +4,7 @@ from .semantic_memory import SemanticMemory
 from .procedural_memory import ProceduralMemory
 from .vault_memory import VaultMemory
 from .security_memory import SecurityMemory
+from .adaptive_blueprint import AdaptiveBlueprintTracker
 
 class MemoryManager:
     def __init__(self):
@@ -13,3 +14,4 @@ class MemoryManager:
         self.procedural = ProceduralMemory()
         self.vault = VaultMemory()
         self.security = SecurityMemory()
+        self.blueprint_tracker = AdaptiveBlueprintTracker(self.semantic)
