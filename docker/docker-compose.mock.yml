@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  rebecca-api:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command:
+      - bash
+      - -c
+      - >-
+        pip install --user -r src/requirements.txt &&
+        uvicorn src.api:app --host 0.0.0.0 --port 8000
+    environment:
+      - REBECCA_CORE_CONFIG=/app/config/core.yaml
+      - API_TOKEN=supersecrettoken
+      - MOCK_MODE=true
+    ports:
+      - "8000:8000"

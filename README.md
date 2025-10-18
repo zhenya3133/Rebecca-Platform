@@ -1,102 +1,50 @@
-# Rebecca-Platform
+﻿# Rebecca-Platform (DROId)
 
-Rebecca-Platform — это координируемая мультиагентная AI-система для проектирования, реализации, тестирования и деплоя фичей с минимальным ручным вмешательством.
+Rebecca/DROId is a multi-agent automation platform covering research, architecture, implementation, testing, deployment, and operations. The freeze build runs with in-memory mocks and can be upgraded to production services via configuration.
 
-> **Current status:** ядро собранo и проверено на in-memory адаптерах, тесты зелёные (`python -m pytest src/tests`), платформа готова к подключению production-хранилищ и LLM.
+> **Freeze snapshot (2025-10-18):** API, agents, memory, chat, voice stubs, and ingestion pipelines operate locally with `python -m pytest tests/test_core_connection.py` passing.
 
-## Как устроен пайплайн
+## Highlights
+- Meta-Orchestrator coordinates specialized agents (architect, research_scout, knowledge_curator, blueprint_generator, qa_guardian, sec_ops, deployment_ops, ops_commander).
+- MemoryManager provides core, episodic, semantic, procedural, vault, and security layers plus AdaptiveBlueprintTracker.
+- FastAPI backend exposes REST and WebSocket chat, document upload, health, and core-settings endpoints.
+- React frontend delivers configuration forms, drag-and-drop ingest, and the chat panel with voice stubs.
+- RebeccaCoreAdapter bridges to the Rebecca Core with pluggable transports.
 
-- Каждый агент взаимодействует через контролирующий Meta-Orchestrator.
-- Задачи декомпозируются и распределяются по агентам в папке `src/<agent>`.
-- Память (MemoryManager) реализует 6 слоёв: Core, Episodic, Semantic, Procedural, Vault, Security.
-- Данные между агентами передаются через структурированные JSON-конверты с метаданными (`role`, `intent`, `payload`, `trace_id`).
-- Логирование и обработка ошибок осуществляется через модуль `platform_logger` (ранее `logger`).
+## Mock launch
+1. Install Python 3.11 and Node.js >= 18 (Docker optional).
+2. Start the platform using scripts in `install/`:
+   - `powershell -ExecutionPolicy Bypass -File install/setup_mock.ps1`
+   - `bash install/setup_mock.sh`
+   - `docker compose -f docker/docker-compose.mock.yml up`
+3. API: `http://localhost:8000` (Swagger: `/docs`).
+4. UI dev: `cd frontend && npm install && npm run dev -- --host` -> `http://localhost:5173`.
 
-## Что такое слои памяти
+See `install/manual.md` for detailed steps.
 
-- **Core:** системные правила, манифесты агентов.
-- **Episodic:** свежие события, временные записи (автоматически чистятся).
-- **Semantic:** long-term знания, стандарты, рекомендации.
-- **Procedural:** инструкции, чеклисты, runbook-и.
-- **Vault:** секреты и токены, хранилище для приватных данных.
-- **Security:** аудиты, отчёты, логи инцидентов (только для Security Agent и Meta-Orchestrator).
+## Testing
+- Smoke: `python -m pytest tests/test_core_connection.py`
+- Full suite: `python -m pytest`
+- Frontend: `npm run lint`, `npm run test`
 
-## Как запускать тесты
+## Project layout
+- `src/` — backend, agents, memory, adapter, ingest
+- `frontend/` — React application
+- `config/` — YAML configuration
+- `tests/` — pytest suites
+- `docker/` — mock compose stack
+- `install/` — setup scripts and manual
 
-### Локальные smoke-тесты агентов
-1. Перейти в папку агента:
-   ```
-   cd src/<agent>
-   ```
-2. Запустить smoke-тест:
-   ```
-   python test_main.py
-   ```
-3. Проверить вывод: ОК означает, что агент корректно взаимодействует с памятью и логирует свои действия.
+## Going production
+1. Update `config/core.yaml` (endpoints, tokens, LLM/STT/TTS preferences).
+2. Provide `.env` secrets and replace in-memory DAO/ObjectStore/VectorStore in `src/api.py`.
+3. Wire ingest pipeline to S3, Postgres, Qdrant, or other services.
+4. Prepare production docker-compose and CI/CD pipelines.
 
-### Интеграционные проверки retrieval/ingest
-```
-python -m pytest tests/retrieval/test_new_cases.py
-```
-Тест `test_edge_cases` валидирует гибридный ретривер на шумных запросах, а `test_pdf_ingest` убеждается, что пайплайн PDF фиксирует артефакты в семантической памяти.
+## Documentation
+- `install/manual.md` — freeze guide
+- `CORE_AUDIT.md` — module and agent overview
+- `CHANGELOG.md` — release history
+- `AGENTS.md` — agent specifications
 
-## Начало работы
-
-1. Клонируй репозиторий:
-   ```
-   git clone <repo-url>
-   cd Rebecca-Platform
-   ```
-2. Запусти базовые сервисы (docker, если требуется):
-   ```
-   docker compose -f docker/docker-compose.yml up -d
-   ```
-3. Проведи тестирование и взаимодействие с агентами через CLI:
-   ```
-   task-cli run --agent <agent> --intent <intent> --trace <id>
-   task-cli test --suite smoke
-   ```
-
-## CI/CD
-- Все pull-request и коммиты автоматически тестируются (GitHub Actions: .github/workflows/tests.yml).
-- Проверяются smoke-тесты для каждого агента и интеграционный тест.
-- При ошибке сборка блокируется, требуется исправление.
-
-### Observability & Regression Metrics
-- Для retrieval-модулей собираются метрики `coverage@k`, `contradiction-rate`, `token-efficiency`, `drift_score`, `privacy_violation_rate`.
-- Цель качества на golden set — менее 1% ошибок по каждой из этих метрик; `drift_score` должен быть < 0.1, нарушений политики — 0.
-- Nightly задача `tests/nightly_eval.py` запускает регрессионный контроль и выводит значения метрик.
-
-## Внешний API
-
-- Стартап:
-  ```
-  pip install -r src/requirements.txt
-  cd src
-  uvicorn api:app --reload
-  ```
-- Доступно в браузере: http://localhost:8000/docs (Swagger UI)
-- Пример вызова через curl:
-  ```
-  curl -X POST "http://localhost:8000/run" -H "accept: application/json" -H "Content-Type: application/json" -d "\"test input\""
-  ```
-
-## Запуск API с авторизацией и trace_id
-
-1. Старт сервера:
-   ```
-   uvicorn api:app --reload
-   ```
-2. Запрос:
-   ```
-   curl -X POST "http://localhost:8000/run" \
-     -H "accept: application/json" \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer supersecrettoken" \
-     -d "{\"input_data\": \"Ваш input\", \"trace_id\": \"unique-id-123\"}"
-   ```
-3. В логах (`agent_log.txt`) записывается `trace_id` и результаты для каждого запроса.
-
----
-
-**Вопросы/исправления — см. документацию AGENTS.md или обращайся к Meta-Orchestrator.**
+Feedback and contributions are welcome via issues or pull requests.
