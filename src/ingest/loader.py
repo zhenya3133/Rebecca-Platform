@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Optional
 
 from event_graph.event_graph import InMemoryEventGraph
 from .ingestion_models import IngestRecord
@@ -59,6 +59,7 @@ class IngestPipeline:
         self.graph_idx.set_neighbors(event.id, [])
 
         self.memory.episodic.store_event({"id": event.id, "summary": event.attrs["text"]})
+        self.memory.blueprint_tracker.link_resource(event.id, {"type": "pdf", "path": pdf_path})
         return event
 
     def ingest_facts(self, facts: Iterable[Fact]) -> None:

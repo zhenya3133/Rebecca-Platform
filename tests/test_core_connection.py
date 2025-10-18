@@ -64,3 +64,23 @@ def test_core_settings_roundtrip(tmp_path, monkeypatch):
 
     refreshed = client.get("/core-settings", headers=headers).json()
     assert refreshed["core"]["endpoint"] == "http://new-core"
+
+
+def test_document_upload(tmp_path, monkeypatch):
+    monkeypatch.setenv("REBECCA_CORE_CONFIG", str(tmp_path / "core.yaml"))
+    from importlib import reload
+    import api as api_module
+
+    reload(api_module)
+    client = TestClient(api_module.app)
+    headers = {"Authorization": "Bearer supersecrettoken"}
+    file_content = b"dummy pdf"
+    response = client.post(
+        "/documents/upload",
+        headers=headers,
+        files={"file": ("test.pdf", file_content, "application/pdf")},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["document_id"].startswith("pdf::")
+    assert "object_key" in body

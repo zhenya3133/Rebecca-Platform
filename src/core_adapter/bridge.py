@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Iterable
 
 from .config import CoreConfig
 
@@ -26,6 +26,12 @@ class MemoryBridge:
 
     def sync_blueprint(self, blueprint: Dict[str, Any]) -> None:
         _ = blueprint
+
+    def link_resource(self, identifier: str, resource: Dict[str, Any]) -> None:
+        _ = (identifier, resource)
+
+    def register_documents(self, documents: Iterable[Dict[str, Any]]) -> None:
+        _ = list(documents)
 
 
 @dataclass

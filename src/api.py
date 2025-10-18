@@ -1,13 +1,20 @@
 import uuid
 from typing import Any, Dict
 
-from fastapi import Body, FastAPI, Header, HTTPException, Request
+from fastapi import Body, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from orchestrator.main_workflow import main_workflow
 from platform_logger import log_event
 from core_adapter import CoreConfig, RebeccaCoreAdapter
+from memory_manager import memory_manager
+from ingest.loader import IngestPipeline
+from storage.pg_dao import InMemoryDAO
+from storage.object_store import InMemoryObjectStore
+from storage.graph_view import InMemoryGraphView
+from retrieval.indexes import InMemoryBM25Index, InMemoryVectorIndex, InMemoryGraphIndex
+from event_graph.event_graph import InMemoryEventGraph
 
 
 app = FastAPI()
@@ -15,6 +22,13 @@ app = FastAPI()
 API_TOKEN = "supersecrettoken"  # TODO: поменять на свой
 CORE_CONFIG: CoreConfig
 CORE_ADAPTER: RebeccaCoreAdapter
+DOCUMENT_STORE = InMemoryObjectStore()
+DAO = InMemoryDAO()
+GRAPH_VIEW = InMemoryGraphView()
+EVENT_GRAPH = InMemoryEventGraph()
+BM25_INDEX = InMemoryBM25Index()
+VECTOR_INDEX = InMemoryVectorIndex()
+GRAPH_INDEX = InMemoryGraphIndex()
 
 
 class CoreSettingsPayload(BaseModel):
@@ -91,3 +105,31 @@ async def update_core_settings(
     config.save()
     reload_core_adapter(config)
     return config.to_dict()
+
+
+@app.post("/documents/upload")
+async def upload_document(
+    authorization: str = Header(None),
+    file: UploadFile = File(...),
+) -> Dict[str, Any]:
+    _require_api_token(authorization)
+    content = await file.read()
+    object_key = f"uploads/{file.filename}"
+    DOCUMENT_STORE.put(object_key, content)
+
+    memory = memory_manager.MemoryManager()
+    pipeline = IngestPipeline(
+        memory=memory,
+        dao=DAO,
+        bm25=BM25_INDEX,
+        vec=VECTOR_INDEX,
+        graph_idx=GRAPH_INDEX,
+        graph_view=GRAPH_VIEW,
+        object_store=DOCUMENT_STORE,
+    )
+    event = pipeline.ingest_pdf(object_key)
+    return {
+        "document_id": event.id,
+        "object_key": object_key,
+        "summary": event.attrs["text"],
+    }
