@@ -37,15 +37,38 @@ llm_adapters:
     model: mistral-8x7b
 
 agents:
-  content_agent:
-    role: content
+  architect:
+    role: architecture
     llm: creative
-  devops_agent:
+    prompt: config/prompts/architect.md
+  research_scout:
+    role: research
+    llm: creative
+    prompt: config/prompts/research_scout.md
+  knowledge_curator:
+    role: knowledge
+    llm: default
+    prompt: config/prompts/knowledge_curator.md
+  blueprint_generator:
+    role: codegen
+    llm: code
+    prompt: config/prompts/blueprint_generator.md
+  qa_guardian:
+    role: qa
+    llm: default
+    prompt: config/prompts/qa_guardian.md
+  sec_ops:
+    role: security
+    llm: default
+    prompt: config/prompts/sec_ops.md
+  ops_commander:
+    role: operations
+    llm: default
+    prompt: config/prompts/ops_commander.md
+  deployment_ops:
     role: devops
     llm: code
-  legal_agent:
-    role: legal
-    llm: default
+    prompt: config/prompts/deployment_ops.md
 
 ingest:
   default_pipeline: auto
