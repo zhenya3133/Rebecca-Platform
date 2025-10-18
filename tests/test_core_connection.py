@@ -3,7 +3,7 @@
 import json
 from fastapi.testclient import TestClient
 
-from api import app
+from api import app, CoreSettingsPayload
 
 
 def test_run_pipeline_returns_context(monkeypatch):
@@ -28,3 +28,39 @@ def test_health_endpoint(monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "ok"
+
+
+def test_core_settings_roundtrip(tmp_path, monkeypatch):
+    monkeypatch.setenv("REBECCA_CORE_CONFIG", str(tmp_path / "core.yaml"))
+    from importlib import reload
+    import api as api_module
+
+    reload(api_module)
+    client = TestClient(api_module.app)
+
+    headers = {"Authorization": "Bearer supersecrettoken"}
+
+    get_response = client.get("/core-settings", headers=headers)
+    assert get_response.status_code == 200
+    original = get_response.json()
+    assert original["core"]["endpoint"].startswith("http")
+
+    update_payload = {
+        "endpoint": "http://new-core",
+        "auth_token": "secret",
+        "transport": "rest",
+        "timeout_seconds": 45,
+        "llm_default": "creative",
+        "llm_fallback": "default",
+        "stt_engine": "whisper",
+        "tts_engine": "edge",
+        "ingest_pipeline": "auto",
+    }
+    put_response = client.put("/core-settings", json=update_payload, headers=headers)
+    assert put_response.status_code == 200
+    body = put_response.json()
+    assert body["core"]["endpoint"] == "http://new-core"
+    assert body["core"]["auth_token"] == "secret"
+
+    refreshed = client.get("/core-settings", headers=headers).json()
+    assert refreshed["core"]["endpoint"] == "http://new-core"

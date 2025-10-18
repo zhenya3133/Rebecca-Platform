@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 from pathlib import Path
 from typing import Any, Dict
 
@@ -20,12 +21,21 @@ class CoreConfig:
     stt_engine: str
     tts_engine: str
     ingest_pipeline: str
+    source_path: Path | None = None
+
+    @classmethod
+    def _default_path(cls) -> Path:
+        env_path = os.environ.get("REBECCA_CORE_CONFIG")
+        return Path(env_path) if env_path else Path("config/core.yaml")
 
     @classmethod
     def load(cls, path: Path | None = None) -> "CoreConfig":
-        path = path or Path("config/core.yaml")
-        with path.open("r", encoding="utf-8") as file:
-            raw: Dict[str, Any] = yaml.safe_load(file)
+        resolved_path = path or cls._default_path()
+        if not resolved_path.exists():
+            resolved_path.parent.mkdir(parents=True, exist_ok=True)
+            resolved_path.write_text("core:\n  endpoint: \"http://localhost:8000\"\n", encoding="utf-8")
+        with resolved_path.open("r", encoding="utf-8") as file:
+            raw: Dict[str, Any] = yaml.safe_load(file) or {}
         core = raw.get("core", {})
         llm = raw.get("llm", {})
         voice = raw.get("voice", {})
@@ -40,4 +50,33 @@ class CoreConfig:
             stt_engine=voice.get("stt", "whisper"),
             tts_engine=voice.get("tts", "edge"),
             ingest_pipeline=documents.get("ingest_pipeline", "auto"),
+            source_path=resolved_path,
         )
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "core": {
+                "endpoint": self.endpoint,
+                "auth_token": self.auth_token,
+                "transport": self.transport,
+                "timeout_seconds": self.timeout_seconds,
+            },
+            "llm": {
+                "default": self.llm_default,
+                "fallback": self.llm_fallback,
+            },
+            "voice": {
+                "stt": self.stt_engine,
+                "tts": self.tts_engine,
+            },
+            "documents": {
+                "ingest_pipeline": self.ingest_pipeline,
+            },
+        }
+
+    def save(self, path: Path | None = None) -> None:
+        target = path or self.source_path or self._default_path()
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("w", encoding="utf-8") as file:
+            yaml.safe_dump(self.to_dict(), file, sort_keys=False)
+        self.source_path = target

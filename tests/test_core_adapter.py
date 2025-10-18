@@ -49,3 +49,14 @@ core:
     config = CoreConfig.load(default_path)
     adapter = RebeccaCoreAdapter.from_config(config)
     assert adapter.connectivity_check() is True
+
+
+def test_core_config_save(tmp_path):
+    config_path = tmp_path / "core.yaml"
+    config = CoreConfig.load(config_path)
+    config.endpoint = "http://core"  # modify
+    config.auth_token = "token"
+    config.save()
+    loaded_again = CoreConfig.load(config_path)
+    assert loaded_again.endpoint == "http://core"
+    assert loaded_again.auth_token == "token"

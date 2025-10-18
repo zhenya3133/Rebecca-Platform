@@ -1,12 +1,28 @@
-export type TestConnectionResponse = {
-  ok: boolean;
-};
-
 const DEFAULT_ENDPOINT = "http://localhost:8000";
 
 type HealthResponse = {
   status: string;
   meta?: Record<string, unknown>;
+};
+
+type CoreSettingsPayload = {
+  core: {
+    endpoint: string;
+    auth_token: string;
+    transport: string;
+    timeout_seconds: number;
+  };
+  llm: {
+    default: string;
+    fallback: string;
+  };
+  voice: {
+    stt: string;
+    tts: string;
+  };
+  documents: {
+    ingest_pipeline: string;
+  };
 };
 
 export class RebeccaCoreService {
@@ -26,5 +42,43 @@ export class RebeccaCoreService {
       console.warn("Rebecca core connection failed", error);
       return false;
     }
+  }
+
+  static async fetchSettings(token: string): Promise<CoreSettingsPayload> {
+    const response = await fetch(`${DEFAULT_ENDPOINT}/core-settings`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to load core settings");
+    }
+    return (await response.json()) as CoreSettingsPayload;
+  }
+
+  static async updateSettings(token: string, payload: CoreSettingsPayload): Promise<CoreSettingsPayload> {
+    const response = await fetch(`${DEFAULT_ENDPOINT}/core-settings`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        endpoint: payload.core.endpoint,
+        auth_token: payload.core.auth_token,
+        transport: payload.core.transport,
+        timeout_seconds: payload.core.timeout_seconds,
+        llm_default: payload.llm.default,
+        llm_fallback: payload.llm.fallback,
+        stt_engine: payload.voice.stt,
+        tts_engine: payload.voice.tts,
+        ingest_pipeline: payload.documents.ingest_pipeline,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to update core settings");
+    }
+    return (await response.json()) as CoreSettingsPayload;
   }
 }
