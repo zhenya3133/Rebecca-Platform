@@ -10,6 +10,13 @@ from platform_logger import log_event
 from core_adapter import CoreConfig, RebeccaCoreAdapter
 from memory_manager import memory_manager
 from ingest.loader import IngestPipeline
+from starlette.websockets import WebSocket, WebSocketDisconnect
+
+# Optional voice / chat dependencies
+try:  # pragma: no cover - optional dependency handling
+    import soundfile  # type: ignore
+except Exception:  # pragma: no cover
+    soundfile = None
 from storage.pg_dao import InMemoryDAO
 from storage.object_store import InMemoryObjectStore
 from storage.graph_view import InMemoryGraphView
@@ -23,6 +30,8 @@ API_TOKEN = "supersecrettoken"  # TODO: поменять на свой
 CORE_CONFIG: CoreConfig
 CORE_ADAPTER: RebeccaCoreAdapter
 DOCUMENT_STORE = InMemoryObjectStore()
+CHAT_SESSIONS: Dict[str, Dict[str, Any]] = {}
+
 DAO = InMemoryDAO()
 GRAPH_VIEW = InMemoryGraphView()
 EVENT_GRAPH = InMemoryEventGraph()
@@ -41,6 +50,29 @@ class CoreSettingsPayload(BaseModel):
     stt_engine: str = "whisper"
     tts_engine: str = "edge"
     ingest_pipeline: str = "auto"
+
+
+class ChatMessage(BaseModel):
+    session_id: str
+    role: str = "user"
+    content: str
+
+
+class ChatSession(BaseModel):
+    session_id: str
+    messages: list[ChatMessage]
+    metadata: Dict[str, Any] = {}
+
+
+class VoiceRequest(BaseModel):
+    session_id: str
+    audio_base64: str
+    format: str = "wav"
+
+
+class SpeechRequest(BaseModel):
+    session_id: str
+    text: str
 
 
 def reload_core_adapter(config: CoreConfig | None = None) -> None:
@@ -133,3 +165,65 @@ async def upload_document(
         "object_key": object_key,
         "summary": event.attrs["text"],
     }
+
+
+@app.post("/chat/session")
+async def start_chat_session(authorization: str = Header(None)) -> Dict[str, Any]:
+    _require_api_token(authorization)
+    session_id = str(uuid.uuid4())
+    CHAT_SESSIONS[session_id] = {
+        "messages": [],
+        "metadata": {"created_at": uuid.uuid1().hex},
+    }
+    return {"session_id": session_id}
+
+
+@app.post("/chat/message")
+async def post_chat_message(
+    payload: ChatMessage,
+    authorization: str = Header(None),
+) -> Dict[str, Any]:
+    _require_api_token(authorization)
+    session = CHAT_SESSIONS.get(payload.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    session["messages"].append(payload.dict())
+    response_text = f"Echo: {payload.content}"
+    session["messages"].append(
+        ChatMessage(session_id=payload.session_id, role="assistant", content=response_text).dict()
+    )
+    return {"response": response_text, "session_id": payload.session_id}
+
+
+@app.post("/voice/stt")
+async def voice_to_text(payload: VoiceRequest, authorization: str = Header(None)) -> Dict[str, Any]:
+    _require_api_token(authorization)
+    text = f"transcribed text from {payload.format}"
+    return {"session_id": payload.session_id, "text": text}
+
+
+@app.post("/voice/tts")
+async def text_to_voice(payload: SpeechRequest, authorization: str = Header(None)) -> Dict[str, Any]:
+    _require_api_token(authorization)
+    audio_stub = payload.text[::-1]
+    return {"session_id": payload.session_id, "audio_base64": audio_stub, "format": "wav"}
+
+
+@app.websocket("/chat/stream/{session_id}")
+async def chat_stream(websocket: WebSocket, session_id: str) -> None:
+    await websocket.accept()
+    if session_id not in CHAT_SESSIONS:
+        await websocket.send_json({"error": "Session not found"})
+        await websocket.close()
+        return
+    try:
+        while True:
+            data = await websocket.receive_json()
+            message = data.get("content", "")
+            CHAT_SESSIONS[session_id]["messages"].append(
+                ChatMessage(session_id=session_id, role="user", content=message).dict()
+            )
+            reply = f"Streaming echo: {message}"
+            await websocket.send_json({"role": "assistant", "content": reply})
+    except WebSocketDisconnect:
+        await websocket.close()

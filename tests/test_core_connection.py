@@ -84,3 +84,39 @@ def test_document_upload(tmp_path, monkeypatch):
     body = response.json()
     assert body["document_id"].startswith("pdf::")
     assert "object_key" in body
+
+
+def test_chat_session(monkeypatch):
+    client = TestClient(app)
+    headers = {"Authorization": "Bearer supersecrettoken"}
+    session_resp = client.post("/chat/session", headers=headers)
+    assert session_resp.status_code == 200
+    session_id = session_resp.json()["session_id"]
+
+    message_resp = client.post(
+        "/chat/message",
+        headers=headers,
+        json={"session_id": session_id, "content": "Hello"},
+    )
+    assert message_resp.status_code == 200
+    assert "Echo" in message_resp.json()["response"]
+
+
+def test_voice_endpoints(monkeypatch):
+    client = TestClient(app)
+    headers = {"Authorization": "Bearer supersecrettoken"}
+    stt_resp = client.post(
+        "/voice/stt",
+        headers=headers,
+        json={"session_id": "s1", "audio_base64": "abc"},
+    )
+    assert stt_resp.status_code == 200
+    assert "text" in stt_resp.json()
+
+    tts_resp = client.post(
+        "/voice/tts",
+        headers=headers,
+        json={"session_id": "s1", "text": "hello"},
+    )
+    assert tts_resp.status_code == 200
+    assert "audio_base64" in tts_resp.json()
