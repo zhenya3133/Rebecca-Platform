@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { UploadDropzone } from "../components/UploadDropzone";
+import { ChatPanel } from "../components/ChatPanel";
 import { RebeccaCoreService } from "../services/RebeccaCoreService";
 
 type StatusVariant = "idle" | "connected" | "failed" | "error";
@@ -212,6 +213,10 @@ export const CoreSettings: React.FC = () => {
         <h3>Document Upload</h3>
         <UploadDropzone onFilesSelected={handleFileUpload} />
         {uploadStatus && <p className="status-message">{uploadStatus}</p>}
+      </section>
+      <section className="chat-area">
+        <h3>Live Chat</h3>
+        <ChatPanel token={token} onAvatarSignal={(payload) => console.log("avatar", payload)} />
       </section>
     </section>
   );

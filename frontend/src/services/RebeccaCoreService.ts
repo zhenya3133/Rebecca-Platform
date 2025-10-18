@@ -98,4 +98,57 @@ export class RebeccaCoreService {
       throw new Error("Failed to upload documents");
     }
   }
+
+  static async startChatSession(token: string): Promise<{ session_id: string }> {
+    const response = await fetch(`${DEFAULT_ENDPOINT}/chat/session`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error("Failed to start chat session");
+    return response.json();
+  }
+
+  static async sendChatMessage(token: string, sessionId: string, content: string): Promise<void> {
+    const response = await fetch(`${DEFAULT_ENDPOINT}/chat/message`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ session_id: sessionId, content }),
+    });
+    if (!response.ok) throw new Error("Failed to send chat message");
+  }
+
+  static async transcribeVoice(token: string, sessionId: string, audioBase64: string): Promise<{ text: string }> {
+    const response = await fetch(`${DEFAULT_ENDPOINT}/voice/stt`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ session_id: sessionId, audio_base64: audioBase64 }),
+    });
+    if (!response.ok) throw new Error("STT failed");
+    return response.json();
+  }
+
+  static async textToSpeech(token: string, sessionId: string, text: string): Promise<{ audio_base64: string; format: string }> {
+    const response = await fetch(`${DEFAULT_ENDPOINT}/voice/tts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ session_id: sessionId, text }),
+    });
+    if (!response.ok) throw new Error("TTS failed");
+    return response.json();
+  }
+
+  static buildWebSocketURL(sessionId: string): string {
+    const url = new URL(`${DEFAULT_ENDPOINT}/chat/stream/${sessionId}`);
+    url.protocol = url.protocol.replace("http", "ws");
+    return url.toString();
+  }
 }
