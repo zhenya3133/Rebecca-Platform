@@ -4,6 +4,11 @@ export type TestConnectionResponse = {
 
 const DEFAULT_ENDPOINT = "http://localhost:8000";
 
+type HealthResponse = {
+  status: string;
+  meta?: Record<string, unknown>;
+};
+
 export class RebeccaCoreService {
   static async testConnection(endpoint: string, token: string): Promise<boolean> {
     const target = endpoint || DEFAULT_ENDPOINT;
@@ -12,7 +17,11 @@ export class RebeccaCoreService {
         method: "GET",
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
-      return response.ok;
+      if (!response.ok) {
+        return false;
+      }
+      const payload = (await response.json()) as HealthResponse;
+      return payload.status === "ok";
     } catch (error) {
       console.warn("Rebecca core connection failed", error);
       return false;

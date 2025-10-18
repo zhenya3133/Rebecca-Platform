@@ -20,3 +20,11 @@ def test_run_pipeline_returns_context(monkeypatch):
     assert "trace_id" in body
     assert "context" in body
     assert body["context"].get("metadata", {}).get("source") == "droid"
+
+
+def test_health_endpoint(monkeypatch):
+    client = TestClient(app)
+    response = client.get("/health")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "ok"

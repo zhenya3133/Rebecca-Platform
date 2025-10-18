@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.responses import JSONResponse
 
 from orchestrator.main_workflow import main_workflow
 from platform_logger import log_event
@@ -28,3 +29,10 @@ async def run_pipeline(request: Request, authorization: str = Header(None)):
     CORE_ADAPTER.emit_event("workflow.completed", {"trace_id": trace_id})
     log_event(f"API Result: trace_id={trace_id}, result={result.get('result', '')}")
     return {"result": result, "trace_id": trace_id, "context": context_envelope}
+
+
+@app.get("/health")
+async def health_check() -> JSONResponse:
+    ok = CORE_ADAPTER.connectivity_check()
+    status = {"status": "ok" if ok else "degraded"}
+    return JSONResponse(content=status, status_code=200 if ok else 503)
