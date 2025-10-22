@@ -33,7 +33,25 @@ class CoreConfig:
         resolved_path = path or cls._default_path()
         if not resolved_path.exists():
             resolved_path.parent.mkdir(parents=True, exist_ok=True)
-            resolved_path.write_text("core:\n  endpoint: \"http://localhost:8000\"\n", encoding="utf-8")
+            default_payload = "\n".join(
+                [
+                    "core:",
+                    "  endpoint: \"http://localhost:8000\"",
+                    "  auth_token: \"supersecrettoken\"",
+                    "  transport: \"grpc\"",
+                    "  timeout_seconds: 30",
+                    "llm:",
+                    "  default: \"creative\"",
+                    "  fallback: \"default\"",
+                    "voice:",
+                    "  stt: \"whisper\"",
+                    "  tts: \"edge\"",
+                    "documents:",
+                    "  ingest_pipeline: \"auto\"",
+                    "",
+                ]
+            )
+            resolved_path.write_text(default_payload, encoding="utf-8")
         with resolved_path.open("r", encoding="utf-8") as file:
             raw: Dict[str, Any] = yaml.safe_load(file) or {}
         core = raw.get("core", {})

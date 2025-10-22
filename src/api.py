@@ -1,5 +1,7 @@
+import os
 import uuid
-from typing import Any, Dict
+from importlib import import_module
+from typing import Any, Dict, Type, TypeVar
 
 from fastapi import Body, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
@@ -26,18 +28,43 @@ from event_graph.event_graph import InMemoryEventGraph
 
 app = FastAPI()
 
-API_TOKEN = "supersecrettoken"  # TODO: поменять на свой
 CORE_CONFIG: CoreConfig
 CORE_ADAPTER: RebeccaCoreAdapter
-DOCUMENT_STORE = InMemoryObjectStore()
+API_TOKEN: str
 CHAT_SESSIONS: Dict[str, Dict[str, Any]] = {}
 
-DAO = InMemoryDAO()
-GRAPH_VIEW = InMemoryGraphView()
-EVENT_GRAPH = InMemoryEventGraph()
-BM25_INDEX = InMemoryBM25Index()
-VECTOR_INDEX = InMemoryVectorIndex()
-GRAPH_INDEX = InMemoryGraphIndex()
+T = TypeVar("T")
+
+
+def _load_override(env_name: str, default: Type[T]) -> Type[T]:
+    path = os.environ.get(env_name)
+    if not path:
+        return default
+    try:
+        module_name, attr_name = path.rsplit(".", 1)
+        module = import_module(module_name)
+        candidate = getattr(module, attr_name)
+    except Exception as exc:  # pragma: no cover - defensive logging
+        log_event(f"Failed to import override {path} from {env_name}: {exc}")
+        return default
+    return candidate  # type: ignore[return-value]
+
+
+DAO_CLASS = _load_override("REBECCA_DAO_CLASS", InMemoryDAO)
+GRAPH_VIEW_CLASS = _load_override("REBECCA_GRAPH_VIEW_CLASS", InMemoryGraphView)
+EVENT_GRAPH_CLASS = _load_override("REBECCA_EVENT_GRAPH_CLASS", InMemoryEventGraph)
+BM25_INDEX_CLASS = _load_override("REBECCA_BM25_INDEX_CLASS", InMemoryBM25Index)
+VECTOR_INDEX_CLASS = _load_override("REBECCA_VECTOR_INDEX_CLASS", InMemoryVectorIndex)
+GRAPH_INDEX_CLASS = _load_override("REBECCA_GRAPH_INDEX_CLASS", InMemoryGraphIndex)
+OBJECT_STORE_CLASS = _load_override("REBECCA_OBJECT_STORE_CLASS", InMemoryObjectStore)
+
+DAO = DAO_CLASS()
+GRAPH_VIEW = GRAPH_VIEW_CLASS()
+EVENT_GRAPH = EVENT_GRAPH_CLASS()
+BM25_INDEX = BM25_INDEX_CLASS()
+VECTOR_INDEX = VECTOR_INDEX_CLASS()
+GRAPH_INDEX = GRAPH_INDEX_CLASS()
+DOCUMENT_STORE = OBJECT_STORE_CLASS()
 
 
 class CoreSettingsPayload(BaseModel):
@@ -75,10 +102,21 @@ class SpeechRequest(BaseModel):
     text: str
 
 
+def _resolve_api_token(config: CoreConfig) -> str:
+    override = os.environ.get("REBECCA_API_TOKEN")
+    if override and override != "local-dev":
+        return override
+    legacy = os.environ.get("API_TOKEN")
+    if legacy and legacy != "local-dev":
+        return legacy
+    return config.auth_token or legacy or "local-dev"
+
+
 def reload_core_adapter(config: CoreConfig | None = None) -> None:
-    global CORE_CONFIG, CORE_ADAPTER  # noqa: PLW0603
+    global CORE_CONFIG, CORE_ADAPTER, API_TOKEN  # noqa: PLW0603
     CORE_CONFIG = config or CoreConfig.load()
     CORE_ADAPTER = RebeccaCoreAdapter.from_config(CORE_CONFIG)
+    API_TOKEN = _resolve_api_token(CORE_CONFIG)
 
 
 def _require_api_token(authorization: str | None) -> None:

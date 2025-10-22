@@ -9,3 +9,9 @@ src/conftest.py
 tests/__pycache__/
 src/tests/__pycache__/
 tests/retrieval/__pycache__/
+.venv/
+.env
+frontend/node_modules/
+frontend/pnpm-lock.yaml
+.runtime-state.json
+*.log
