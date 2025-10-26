@@ -29,7 +29,7 @@
    - Обновить `start_rebecca.ps1`/`stop_rebecca.ps1`, добавить проверки
      зависимостей, генерацию `.env`, запуск uvicorn и фронтенда.
 4. **Диагностика текущего состояния**
-   - Выполнить `pytest`, `pnpm lint`, smoke-тесты API `/health` и `/run`.
+   - Выполнить `python -m pytest -m smoke -q` (или `scripts/smoke.ps1` / `scripts/smoke.sh`), `pnpm lint`, smoke-тесты API `/health` и `/run`.
    - Зафиксировать исходный git-слепок (`git status`, `git diff`) и решить судьбу
      незакоммиченных изменений.
 
@@ -44,10 +44,10 @@
    - Добавить диаграмму (PlantUML/mermaid) в `docs/ARCHITECTURE.md` для
      актуального состояния (без существенных правок текста).
 2. **Тестовое покрытие**
-   - Создать smoke-тесты для `main_workflow`, API `/run`, `/documents/upload`,
-     WebSocket `/chat/stream`.
-   - Настроить pytest markers (unit/integration) и GitHub Actions матрицу
-     (добавить локальный сценарий в `.github/workflows/tests.yml`).
+   - Расширить smoke-тесты (покрыть `main_workflow`, `/documents/upload`,
+     WebSocket `/chat/stream`).
+   - К уже настроенному маркеру `smoke` добавить unit/integration suite и
+     обновить GitHub Actions матрицу (расширить `.github/workflows/tests.yml`).
 3. **Долги инфраструктуры**
    - Очистить TODO в `api.py` (замена `API_TOKEN`, конфигурация из `.env`).
    - Вынести in-memory зависимости (DAO, индекс, хранилище) в сервис-ладер

@@ -79,19 +79,10 @@ if ($env:DB_TYPE -and $env:DB_HOST -and $env:DB_PORT) {
 # 6) Smoke-тесты
 Step "Smoke-тесты"
 if ($DryRun) {
-  Info "[DryRun] python -m pytest -q"
+  Info "[DryRun] python -m pytest -m smoke -q"
 } else {
   if (Test-Path ".\tests") {
-    $smoke = @(
-      "tests\\test_health.py",
-      "tests\\test_run.py",
-      "tests\\test_core_connection.py",
-      "src\\retrieval\\test_hybrid_retriever.py"
-    ) | Where-Object { Test-Path $_ }
-    if ($smoke.Count -eq 0) { Warn "smoke тесты не найдены"; $global:BootstrapFailed = $true }
-    else {
-      try { python -m pytest -q @smoke } catch { Warn "pytest завершился с ошибкой"; $global:BootstrapFailed = $true; if(-not $Force){ throw } }
-    }
+    try { python -m pytest -m smoke -q } catch { Warn "pytest завершился с ошибкой"; $global:BootstrapFailed = $true; if(-not $Force){ throw } }
   } else { Info "Папка tests не найдена — пропускаю" }
 }
 

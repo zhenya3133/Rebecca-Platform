@@ -2,7 +2,11 @@
 
 import importlib
 import json
+
+import pytest
 from fastapi.testclient import TestClient
+
+pytestmark = pytest.mark.smoke
 
 
 def _fresh_api(monkeypatch, config_path=None):

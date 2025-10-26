@@ -37,7 +37,7 @@ jobs:
 
       - name: Run smoke tests
         shell: pwsh
-        run: python -m pytest tests/test_health.py tests/test_run.py tests/test_core_connection.py src/retrieval/test_hybrid_retriever.py
+        run: python -m pytest -m smoke -q
 
   linux-pytest:
     runs-on: ubuntu-latest
@@ -70,4 +70,4 @@ jobs:
         run: pwsh -File ./scripts/verify_arch.ps1
 
       - name: Run smoke tests
-        run: python -m pytest tests/test_health.py tests/test_run.py tests/test_core_connection.py src/retrieval/test_hybrid_retriever.py
+        run: python -m pytest -m smoke -q

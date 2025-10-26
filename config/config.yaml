@@ -6,7 +6,7 @@ storage:
     host: localhost
     port: 5432
     user: postgres
-    password: password
+    password: change-me
     database: rebecca_core
 
   archive:
@@ -28,12 +28,12 @@ llm_adapters:
   creative:
     type: openai
     api_url: https://api.openai.com/v1/chat/completions
-    api_key: "sk-obfuscated"
+    api_key: ""
     model: gpt-4
   code:
     type: openrouter
     api_url: https://openrouter.ai/api/v1/chat
-    api_key: "or-key"
+    api_key: ""
     model: mistral-8x7b
 
 agents:
