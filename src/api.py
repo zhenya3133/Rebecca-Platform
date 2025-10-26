@@ -102,21 +102,30 @@ class SpeechRequest(BaseModel):
     text: str
 
 
-def _resolve_api_token(config: CoreConfig) -> str:
+def _resolve_api_token(config: CoreConfig, *, use_env_override: bool = True) -> str:
     override = os.environ.get("REBECCA_API_TOKEN")
-    if override and override != "local-dev":
-        return override
     legacy = os.environ.get("API_TOKEN")
-    if legacy and legacy != "local-dev":
-        return legacy
-    return config.auth_token or legacy or "local-dev"
+
+    if use_env_override:
+        for candidate in (override, legacy):
+            if candidate and candidate != "local-dev":
+                return candidate
+
+    if config.auth_token:
+        return config.auth_token
+
+    for candidate in (override, legacy):
+        if candidate:
+            return candidate
+
+    return "local-dev"
 
 
 def reload_core_adapter(config: CoreConfig | None = None) -> None:
     global CORE_CONFIG, CORE_ADAPTER, API_TOKEN  # noqa: PLW0603
     CORE_CONFIG = config or CoreConfig.load()
     CORE_ADAPTER = RebeccaCoreAdapter.from_config(CORE_CONFIG)
-    API_TOKEN = _resolve_api_token(CORE_CONFIG)
+    API_TOKEN = _resolve_api_token(CORE_CONFIG, use_env_override=config is None)
 
 
 def _require_api_token(authorization: str | None) -> None:

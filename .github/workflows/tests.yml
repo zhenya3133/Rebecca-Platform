@@ -1,27 +1,73 @@
-name: Python agent tests
-
-on: [push, pull_request]
+name: tests
+on:
+  push:
+  pull_request:
 
 jobs:
-  test-agents:
-    runs-on: ubuntu-latest
+  windows-pytest:
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$PWD/src" >> $GITHUB_ENV
-      - name: Install dependencies
-        run: pip install -r src/requirements.txt || true
-      - name: Run smoke tests
+        shell: pwsh
         run: |
-          cd src
-          for d in architect codegen educator feedback idea_generator integration logger memory_manager orchestrator qa researcher scheduler security ui_ux; do
-            cd $d
-            python test_main.py
-            cd ..
-          done
-      - name: Run integration test
-        run: python tests/integration_test.py
+          echo "PYTHONPATH=$env:GITHUB_WORKSPACE\src" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Bootstrap dry run
+        shell: pwsh
+        run: .\scripts\bootstrap.ps1 -DryRun
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          python -m pip install -U pip
+          if (Test-Path "src\requirements.txt") { pip install -r src\requirements.txt }
+          elseif (Test-Path "requirements.txt") { pip install -r requirements.txt }
+          else { Write-Host "requirements not found; proceeding" }
+
+      - name: Verify architecture contract (Windows)
+        shell: pwsh
+        run: |
+          .\scripts\verify_arch.ps1
+
+      - name: Run smoke tests
+        shell: pwsh
+        run: python -m pytest tests/test_health.py tests/test_run.py tests/test_core_connection.py src/retrieval/test_hybrid_retriever.py
+
+  linux-pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$GITHUB_WORKSPACE/src" >> $GITHUB_ENV
+
+      - name: Bootstrap dry run
+        shell: pwsh
+        run: ./scripts/bootstrap.ps1 -DryRun
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          if [ -f src/requirements.txt ]; then
+            pip install -r src/requirements.txt
+          elif [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "requirements not found; proceeding"
+          fi
+
+      - name: Verify architecture contract (Linux)
+        run: pwsh -File ./scripts/verify_arch.ps1
+
+      - name: Run smoke tests
+        run: python -m pytest tests/test_health.py tests/test_run.py tests/test_core_connection.py src/retrieval/test_hybrid_retriever.py
