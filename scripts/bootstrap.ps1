@@ -21,7 +21,7 @@ if (-not (Test-Path ".\.git") -and -not $Force) {
 if (Test-Path ".\.env") {
   Step "Загружаю .env"
   (Get-Content .\.env) | Where-Object { $_ -match '^\s*[^#].*=' } | ForEach-Object {
-    $k,$v = $_.Split('=',2); if($k -and $v){ $env:$k = $v }
+    $k,$v = $_.Split('=',2); if($k -and $v){ Set-Item -Path Env:$k -Value $v }
   }
 } else { Warn ".env не найден. Создай из .env.example" }
 
