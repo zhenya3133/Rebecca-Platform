@@ -234,10 +234,10 @@ async def post_chat_message(
     session = CHAT_SESSIONS.get(payload.session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    session["messages"].append(payload.dict())
+    session["messages"].append(payload.model_dump())
     response_text = f"Echo: {payload.content}"
     session["messages"].append(
-        ChatMessage(session_id=payload.session_id, role="assistant", content=response_text).dict()
+        ChatMessage(session_id=payload.session_id, role="assistant", content=response_text).model_dump()
     )
     return {"response": response_text, "session_id": payload.session_id}
 
@@ -268,7 +268,7 @@ async def chat_stream(websocket: WebSocket, session_id: str) -> None:
             data = await websocket.receive_json()
             message = data.get("content", "")
             CHAT_SESSIONS[session_id]["messages"].append(
-                ChatMessage(session_id=session_id, role="user", content=message).dict()
+                ChatMessage(session_id=session_id, role="user", content=message).model_dump()
             )
             reply = f"Streaming echo: {message}"
             await websocket.send_json({"role": "assistant", "content": reply})

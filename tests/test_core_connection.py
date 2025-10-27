@@ -25,7 +25,7 @@ def test_run_pipeline_returns_context(monkeypatch):
     response = client.post(
         "/run",
         headers={"Authorization": f"Bearer {api_module.API_TOKEN}"},
-        data=json.dumps(payload),
+        json=payload,
     )
     assert response.status_code == 200
     body = response.json()

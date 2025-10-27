@@ -52,7 +52,7 @@ class IngestPipeline:
             channel="pdf",
             raw_ref=object_key,
         )
-        self.dao.upsert_node(event.dict())
+        self.dao.upsert_node(event.model_dump())
         self.bm25.upsert(event.id, event.attrs["text"])
         self.vec.upsert(event.id, [0.1, 0.2, 0.3])
         self.graph_view.upsert_event(event)
@@ -64,7 +64,7 @@ class IngestPipeline:
 
     def ingest_facts(self, facts: Iterable[Fact]) -> None:
         for fact in facts:
-            self.dao.upsert_node(fact.dict())
+            self.dao.upsert_node(fact.model_dump())
             self.bm25.upsert(fact.id, fact.object)
             self.vec.upsert(fact.id, [0.5, 0.4, 0.3])
 

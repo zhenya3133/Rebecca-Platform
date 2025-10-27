@@ -78,4 +78,4 @@ def test_ingest_consolidate_retrieve_reconstruct():
     )
     assert pack.nodes, "Context pack must contain nodes"
     assert memory.semantic.get_concept("cross_modal::pdf-audio")
-    print("Core pipeline context pack:", pack.dict())
+    print("Core pipeline context pack:", pack.model_dump())
