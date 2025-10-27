@@ -52,7 +52,7 @@ if (Test-Path ".\package.json") {
 } else { Info "package.json не найден — пропускаю Node" }
 
 # 4) Python deps (если есть)
-if (Test-Path ".\pyproject.toml" -or Test-Path ".\requirements.txt" -or Test-Path ".\src\requirements.txt") {
+if ((Test-Path ".\pyproject.toml") -or (Test-Path ".\requirements.txt") -or (Test-Path ".\src\requirements.txt")) {
   Step "Python зависимости"
   if (-not (Test-Path ".\.venv")) {
     if ($DryRun) { Info "[DryRun] python -m venv .venv" } else { python -m venv .venv }
