@@ -67,7 +67,7 @@ jobs:
           fi
 
       - name: Verify architecture contract (Linux)
-        run: pwsh -File ./scripts/verify_arch.ps1
+        run: pwsh ./scripts/verify_arch.ps1
 
       - name: Run smoke tests
         run: python -m pytest -m smoke -q
