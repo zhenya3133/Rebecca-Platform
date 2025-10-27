@@ -33,7 +33,7 @@ jobs:
       - name: Verify architecture contract (Windows)
         shell: pwsh
         run: |
-          pwsh -File .\scripts\verify_arch.ps1
+          pwsh -File ./scripts/verify_arch.ps1
 
       - name: Run smoke tests
         shell: pwsh
