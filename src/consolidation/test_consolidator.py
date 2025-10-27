@@ -42,7 +42,7 @@ class DummyMemory:
 def test_consolidator_emotions():
     memory = DummyMemory()
     consolidator = MemoryConsolidator(memory)
-    consolidator.consolidate_with_emotions()
+    consolidator.consolidate()
     data = memory.semantic.get_all()
     print("Emotional summaries:", data)
     assert any("positive" in value for _, value in data)

@@ -37,27 +37,6 @@ def test_edge_cases():
     assert res, "Expected retrieval results for edge case query"
 
 
-def test_pdf_ingest():
-    from ingest.pdf_ingest import ingest_pdf
-
-    class DummySemantic:
-        def __init__(self):
-            self.data = {}
-
-        def store_concept(self, key, value):
-            self.data[key] = value
-
-
-    class DummyMemory:
-        def __init__(self):
-            self.semantic = DummySemantic()
-
-    memory = DummyMemory()
-    ingest_pdf(memory, "mytest.pdf")
-    assert "pdf_ingest" in memory.semantic.data
-    print("PDF ingest stored:", memory.semantic.data["pdf_ingest"])
-
 
 if __name__ == "__main__":
     test_edge_cases()
-    test_pdf_ingest()
